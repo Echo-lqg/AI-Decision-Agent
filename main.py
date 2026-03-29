@@ -1,10 +1,10 @@
 """
-CLI Entry Point — AI Decision Agent.
+Point d'entrée CLI — AI Decision Agent.
 
-Usage:
+Utilisation :
     python main.py pathfinding [--size 15] [--seed 42] [--maze dfs]
     python main.py rl [--size 11] [--episodes 1000] [--seed 42]
-    python main.py benchmark [--type pathfinding|maze|rl]
+    python main.py benchmark [--type pathfinding|maze|rl|cross]
     python main.py demo
 """
 
@@ -21,7 +21,10 @@ from src.visualizer import (
     plot_comparison, plot_exploration_heatmap,
     plot_training_curves, plot_value_map, plot_rl_path_on_grid,
 )
-from src.benchmark import benchmark_pathfinding, benchmark_mazes, benchmark_rl
+from src.benchmark import (
+    benchmark_pathfinding, benchmark_mazes, benchmark_rl,
+    benchmark_cross_comparison, statistical_tests,
+)
 
 
 def make_env(args) -> GridWorld:
@@ -99,25 +102,53 @@ def cmd_benchmark(args):
     bench_type = args.type
 
     if bench_type == "pathfinding":
-        print("Running pathfinding benchmark...")
+        print("Exécution du benchmark de recherche...")
         df = benchmark_pathfinding(seed=args.seed)
         print(df.to_string(index=False))
         df.to_csv("output_benchmark_pathfinding.csv", index=False)
         print("\n✅ Saved: output_benchmark_pathfinding.csv")
 
     elif bench_type == "maze":
-        print("Running maze benchmark...")
+        print("Exécution du benchmark labyrinthes...")
         df = benchmark_mazes(seed=args.seed)
         print(df.to_string(index=False))
         df.to_csv("output_benchmark_maze.csv", index=False)
         print("\n✅ Saved: output_benchmark_maze.csv")
 
     elif bench_type == "rl":
-        print("Running RL benchmark...")
+        print("Exécution du benchmark RL...")
         df = benchmark_rl(seed=args.seed)
         print(df.to_string(index=False))
         df.to_csv("output_benchmark_rl.csv", index=False)
         print("\n✅ Saved: output_benchmark_rl.csv")
+
+    elif bench_type == "cross":
+        print("Exécution de la comparaison croisée (recherche vs RL sur grilles identiques)...")
+        df = benchmark_cross_comparison(
+            grid_size=15, obstacle_ratio=0.15, episodes=1000,
+            n_trials=10, seed=args.seed,
+        )
+        print(df.to_string(index=False))
+        df.to_csv("output_benchmark_cross.csv", index=False)
+        print("\n✅ Saved: output_benchmark_cross.csv")
+
+        print("\n" + "=" * 60)
+        print("  Tests de significativité statistique")
+        print("=" * 60)
+        st_df = statistical_tests(df)
+        if st_df.empty:
+            print("  Données insuffisantes pour les tests de significativité.")
+        else:
+            for _, row in st_df.iterrows():
+                sig = "***" if row["significant_01"] else ("*" if row["significant_005"] else "n.s.")
+                print(f"\n  {row['hypothesis']}")
+                print(f"    {row['group_a']}: mean={row['mean_a']:.2f}  vs  "
+                      f"{row['group_b']}: mean={row['mean_b']:.2f}  "
+                      f"(Δ={row['mean_diff']:.2f}, n={row['n_pairs']})")
+                print(f"    W={row['W_statistic']:.0f}  p={row['p_value']:.4f}  "
+                      f"r={row['effect_size_r']:.3f}  [{sig}]")
+            st_df.to_csv("output_statistical_tests.csv", index=False)
+            print("\n✅ Saved: output_statistical_tests.csv")
 
 
 def cmd_demo(args):
@@ -125,8 +156,8 @@ def cmd_demo(args):
     print("  AI Decision Agent — Full Demo")
     print("=" * 60)
 
-    # 1) Random grid pathfinding
-    print("\n[1/4] Random Grid — Pathfinding Comparison")
+    # 1) Recherche sur grille aléatoire
+    print("\n[1/4] Grille aléatoire — Comparaison des algorithmes")
     env = GridWorld(15, 15)
     env.add_random_obstacles(ratio=0.2, seed=42)
     env.add_random_swamps(ratio=0.05, seed=43)
@@ -138,8 +169,8 @@ def cmd_demo(args):
     fig.savefig("demo_1_pathfinding.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
-    # 2) Maze pathfinding
-    print("\n[2/4] DFS Maze — Pathfinding")
+    # 2) Recherche dans un labyrinthe
+    print("\n[2/4] Labyrinthe DFS — Recherche de chemin")
     maze = generate_maze_dfs(21, 21, seed=42)
     results = run_all(maze)
     for r in results:
@@ -148,8 +179,8 @@ def cmd_demo(args):
     fig.savefig("demo_2_maze.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
-    # 3) RL training
-    print("\n[3/4] RL Training (Q-Learning vs SARSA, 1000 episodes)")
+    # 3) Entraînement RL
+    print("\n[3/4] Entraînement RL (Q-Learning vs SARSA, 1000 épisodes)")
     rl_env = GridWorld(11, 11)
     rl_env.add_random_obstacles(ratio=0.15, seed=42)
     rl_results = []
@@ -163,8 +194,8 @@ def cmd_demo(args):
     fig.savefig("demo_3_rl_curves.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
-    # 4) Value maps
-    print("\n[4/4] Value Maps & Policy Visualization")
+    # 4) Cartes de valeur
+    print("\n[4/4] Cartes de valeur et visualisation des politiques")
     for result in rl_results:
         fig = plot_value_map(rl_env, result.q_table, f"{result.algorithm} V(s)")
         fname = f"demo_4_{result.algorithm.replace('-', '').lower()}_value.png"
@@ -172,36 +203,36 @@ def cmd_demo(args):
         plt.close(fig)
 
     print("\n" + "=" * 60)
-    print("  Demo complete! Check demo_*.png files.")
+    print("  Démonstration terminée ! Voir les fichiers demo_*.png.")
     print("=" * 60)
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="AI Decision Agent — Path Planning & Reinforcement Learning"
+        description="AI Decision Agent — Planification de chemins & Apprentissage par renforcement"
     )
     sub = parser.add_subparsers(dest="command")
 
-    # pathfinding
-    p1 = sub.add_parser("pathfinding", help="Run pathfinding algorithms")
+    # recherche de chemin
+    p1 = sub.add_parser("pathfinding", help="Exécuter les algorithmes de recherche")
     p1.add_argument("--size", type=int, default=15)
     p1.add_argument("--seed", type=int, default=42)
     p1.add_argument("--maze", choices=["dfs", "prim"], default=None)
 
-    # rl
-    p2 = sub.add_parser("rl", help="Train RL agents")
+    # apprentissage par renforcement
+    p2 = sub.add_parser("rl", help="Entraîner les agents RL")
     p2.add_argument("--size", type=int, default=11)
     p2.add_argument("--episodes", type=int, default=1000)
     p2.add_argument("--seed", type=int, default=42)
     p2.add_argument("--maze", choices=["dfs", "prim"], default=None)
 
-    # benchmark
-    p3 = sub.add_parser("benchmark", help="Run benchmarks")
-    p3.add_argument("--type", choices=["pathfinding", "maze", "rl"], default="pathfinding")
+    # benchmarks
+    p3 = sub.add_parser("benchmark", help="Exécuter les benchmarks")
+    p3.add_argument("--type", choices=["pathfinding", "maze", "rl", "cross"], default="pathfinding")
     p3.add_argument("--seed", type=int, default=42)
 
-    # demo
-    sub.add_parser("demo", help="Run full demo")
+    # démonstration
+    sub.add_parser("demo", help="Lancer la démonstration complète")
 
     args = parser.parse_args()
 

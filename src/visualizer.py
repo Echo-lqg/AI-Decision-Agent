@@ -1,12 +1,12 @@
 """
-Visualization module using matplotlib.
+Module de visualisation avec matplotlib.
 
-Provides rich visual representations of:
-- Grid worlds with terrain types
-- Algorithm exploration patterns (heatmaps)
-- Path overlays
-- RL training curves & value maps
-- Side-by-side algorithm comparison
+Fournit des représentations visuelles de :
+- Grilles avec types de terrain
+- Cartes de chaleur d'exploration des algorithmes
+- Superposition de chemins
+- Courbes d'entraînement RL et cartes de valeur
+- Comparaison côte à côte des algorithmes
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ CELL_COLORS = {
 
 
 def _draw_grid(ax, env: GridWorld, title: str = ""):
-    """Draw the base grid on an axes."""
+    """Dessine la grille de base sur un axe matplotlib."""
     grid_rgb = np.ones((env.rows, env.cols, 3))
     for r in range(env.rows):
         for c in range(env.cols):
@@ -51,11 +51,11 @@ def plot_grid(env: GridWorld, title: str = "GridWorld", save_path: Optional[str]
     _draw_grid(ax, env, title)
 
     legend_elements = [
-        mpatches.Patch(facecolor=CELL_COLORS[CellType.START], label="Start"),
-        mpatches.Patch(facecolor=CELL_COLORS[CellType.GOAL], label="Goal"),
-        mpatches.Patch(facecolor=CELL_COLORS[CellType.WALL], label="Wall"),
-        mpatches.Patch(facecolor=CELL_COLORS[CellType.SWAMP], label="Swamp (cost×3)"),
-        mpatches.Patch(facecolor=CELL_COLORS[CellType.REWARD], label="Reward (+10)"),
+        mpatches.Patch(facecolor=CELL_COLORS[CellType.START], label="Départ"),
+        mpatches.Patch(facecolor=CELL_COLORS[CellType.GOAL], label="Objectif"),
+        mpatches.Patch(facecolor=CELL_COLORS[CellType.WALL], label="Mur"),
+        mpatches.Patch(facecolor=CELL_COLORS[CellType.SWAMP], label="Marécage (coût×3)"),
+        mpatches.Patch(facecolor=CELL_COLORS[CellType.REWARD], label="Récompense (+10)"),
     ]
     ax.legend(handles=legend_elements, loc="upper right", fontsize=9)
     plt.tight_layout()
@@ -126,7 +126,7 @@ def plot_comparison(
                  f"Explored={result.nodes_explored}  {result.time_seconds*1000:.2f}ms")
         ax.set_title(title, fontsize=9, fontweight="bold")
 
-    fig.suptitle("Algorithm Comparison", fontsize=14, fontweight="bold", y=1.02)
+    fig.suptitle("Comparaison des algorithmes", fontsize=14, fontweight="bold", y=1.02)
     plt.tight_layout()
     if save_path:
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
@@ -157,7 +157,7 @@ def plot_exploration_heatmap(
         cmap = plt.cm.YlOrRd.copy()
         cmap.set_bad(color="white")
         im = ax.imshow(masked, cmap=cmap, interpolation="nearest")
-        plt.colorbar(im, ax=ax, shrink=0.8, label="Visit order")
+        plt.colorbar(im, ax=ax, shrink=0.8, label="Ordre de visite")
 
         for r in range(env.rows):
             for c in range(env.cols):
@@ -174,7 +174,7 @@ def plot_exploration_heatmap(
     return fig
 
 
-# ── RL visualizations ───────────────────────────────────────────
+# ── Visualisations RL ───────────────────────────────────────────
 
 def plot_training_curves(
     results: List[TrainingResult],
@@ -189,9 +189,9 @@ def plot_training_curves(
         ax1.plot(smoothed, label=result.algorithm, linewidth=1.5)
         if result.converged_at is not None:
             ax1.axvline(x=result.converged_at, linestyle="--", alpha=0.5)
-    ax1.set_xlabel("Episode")
-    ax1.set_ylabel("Reward (smoothed)")
-    ax1.set_title("Training Reward Curves", fontweight="bold")
+    ax1.set_xlabel("Épisode")
+    ax1.set_ylabel("Récompense (lissée)")
+    ax1.set_title("Courbes de récompense d'entraînement", fontweight="bold")
     ax1.legend()
     ax1.grid(True, alpha=0.3)
 
@@ -199,9 +199,9 @@ def plot_training_curves(
         steps = np.array(result.episode_steps)
         smoothed = np.convolve(steps, np.ones(window) / window, mode="valid")
         ax2.plot(smoothed, label=result.algorithm, linewidth=1.5)
-    ax2.set_xlabel("Episode")
-    ax2.set_ylabel("Steps per Episode")
-    ax2.set_title("Steps to Goal", fontweight="bold")
+    ax2.set_xlabel("Épisode")
+    ax2.set_ylabel("Pas par épisode")
+    ax2.set_title("Pas vers l'objectif", fontweight="bold")
     ax2.legend()
     ax2.grid(True, alpha=0.3)
 
@@ -214,7 +214,7 @@ def plot_training_curves(
 def plot_value_map(
     env: GridWorld,
     q_table: np.ndarray,
-    title: str = "State Value Map",
+    title: str = "Carte de valeur des états",
     save_path: Optional[str] = None,
 ):
     values = np.max(q_table, axis=2)
@@ -263,12 +263,12 @@ def plot_rl_path_on_grid(
         path_r = [p[0] for p in path]
         path_c = [p[1] for p in path]
         ax.plot(path_c, path_r, "o-", color="#9B59B6", linewidth=2.5,
-                markersize=5, zorder=5, label=f"{training_result.algorithm} policy")
+                markersize=5, zorder=5, label=f"{training_result.algorithm} — politique")
         ax.legend(fontsize=10)
 
     reached = path[-1] == env.goal if path else False
-    status = "Reached Goal" if reached else "Did NOT reach Goal"
-    ax.set_title(f"{training_result.algorithm} Learned Policy — {status}",
+    status = "Objectif atteint" if reached else "Objectif NON atteint"
+    ax.set_title(f"{training_result.algorithm} — Politique apprise — {status}",
                  fontsize=11, fontweight="bold")
     plt.tight_layout()
     if save_path:

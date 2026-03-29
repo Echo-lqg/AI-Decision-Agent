@@ -1,8 +1,8 @@
 """
-Classical Pathfinding Algorithms.
+Algorithmes de recherche de chemin classiques.
 
-Implements BFS, DFS, Dijkstra, and A* on a GridWorld,
-returning the path, visited nodes, and performance metrics.
+Implémente BFS, DFS, Dijkstra et A* sur un GridWorld.
+Retourne le chemin, les nœuds visités et les métriques de performance.
 """
 
 from __future__ import annotations
@@ -70,17 +70,19 @@ def bfs(env: GridWorld) -> SearchResult:
 # ── DFS ─────────────────────────────────────────────────────────
 def dfs(env: GridWorld) -> SearchResult:
     t0 = time.perf_counter()
-    stack = [env.start]
+    stack = [(env.start, None)]  # (node, parent)
     visited: Set[Tuple[int, int]] = set()
     visited_order: List[Tuple[int, int]] = []
     came_from: Dict[Tuple[int, int], Tuple[int, int]] = {}
 
     while stack:
-        current = stack.pop()
+        current, parent = stack.pop()
         if current in visited:
             continue
         visited.add(current)
         visited_order.append(current)
+        if parent is not None:
+            came_from[current] = parent
 
         if current == env.goal:
             path = _reconstruct(came_from, current)
@@ -90,8 +92,7 @@ def dfs(env: GridWorld) -> SearchResult:
 
         for neighbor in env.neighbors(*current):
             if neighbor not in visited:
-                came_from[neighbor] = current
-                stack.append(neighbor)
+                stack.append((neighbor, current))
 
     return SearchResult("DFS", [], visited_order, 0.0,
                         len(visited), time.perf_counter() - t0, False)
@@ -174,7 +175,7 @@ def astar(env: GridWorld, heuristic=None) -> SearchResult:
                         len(closed), time.perf_counter() - t0, False)
 
 
-# ── convenience ─────────────────────────────────────────────────
+# ── utilitaires ─────────────────────────────────────────────────
 ALL_ALGORITHMS = {
     "BFS": bfs,
     "DFS": dfs,

@@ -1,9 +1,9 @@
 """
-Reinforcement Learning Agents for GridWorld.
+Agents d'apprentissage par renforcement pour GridWorld.
 
-Implements tabular Q-Learning and SARSA with epsilon-greedy exploration.
-Tracks learning curves and converged policies for comparison with
-classical search approaches.
+Implémente Q-Learning et SARSA tabulaires avec exploration epsilon-greedy.
+Enregistre les courbes d'apprentissage et les politiques convergées
+pour comparaison avec les approches de recherche classiques.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ class TrainingResult:
 
 
 class QLearningAgent:
-    """Tabular Q-Learning with epsilon-greedy exploration."""
+    """Q-Learning tabulaire avec exploration epsilon-greedy."""
 
     def __init__(
         self,
@@ -125,7 +125,7 @@ class QLearningAgent:
 
 
 class SARSAAgent:
-    """Tabular SARSA with epsilon-greedy exploration."""
+    """SARSA tabulaire avec exploration epsilon-greedy."""
 
     def __init__(
         self,

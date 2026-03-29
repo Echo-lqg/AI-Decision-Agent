@@ -1,9 +1,9 @@
 """
-GridWorld Environment for Agent Navigation & Decision Making.
+Environnement GridWorld pour la navigation et la prise de décision.
 
-Supports configurable grid sizes, obstacles, weighted terrain,
-rewards, and penalties. Compatible with both classical search
-and reinforcement learning agents.
+Grilles configurables avec obstacles, terrain pondéré (marécages),
+récompenses et pénalités. Compatible avec les algorithmes de recherche
+classiques et les agents par apprentissage par renforcement.
 """
 
 from __future__ import annotations
@@ -21,8 +21,8 @@ class CellType(IntEnum):
     WALL = 1
     START = 2
     GOAL = 3
-    SWAMP = 4   # high traversal cost
-    REWARD = 5  # bonus reward cell
+    SWAMP = 4   # coût de traversée élevé
+    REWARD = 5  # cellule bonus
 
 
 @dataclass
@@ -34,8 +34,8 @@ class GridWorld:
     goal: Tuple[int, int] = field(default=None)
     rewards: Dict[Tuple[int, int], float] = field(default_factory=dict)
 
-    ACTIONS = [(0, 1), (0, -1), (1, 0), (-1, 0)]  # right, left, down, up
-    ACTION_NAMES = ["right", "left", "down", "up"]
+    ACTIONS = [(0, 1), (0, -1), (1, 0), (-1, 0)]  # droite, gauche, bas, haut
+    ACTION_NAMES = ["droite", "gauche", "bas", "haut"]
 
     def __post_init__(self):
         self.grid = np.zeros((self.rows, self.cols), dtype=int)
@@ -44,7 +44,7 @@ class GridWorld:
         self.grid[self.start] = CellType.START
         self.grid[self.goal] = CellType.GOAL
 
-    # ── cost model ──────────────────────────────────────────────
+    # ── modèle de coût ─────────────────────────────────────────
     def step_cost(self, r: int, c: int) -> float:
         cell = self.grid[r, c]
         if cell == CellType.SWAMP:
@@ -61,9 +61,9 @@ class GridWorld:
             return -10.0
         if cell == CellType.SWAMP:
             return -2.0
-        return -1.0  # living penalty
+        return -1.0  # pénalité de vie
 
-    # ── dynamics ────────────────────────────────────────────────
+    # ── dynamique ─────────────────────────────────────────────
     def is_valid(self, r: int, c: int) -> bool:
         return 0 <= r < self.rows and 0 <= c < self.cols and self.grid[r, c] != CellType.WALL
 
@@ -76,16 +76,16 @@ class GridWorld:
         return result
 
     def step(self, state: Tuple[int, int], action_idx: int) -> Tuple[Tuple[int, int], float, bool]:
-        """Take an action, return (next_state, reward, done)."""
+        """Exécute une action, retourne (état_suivant, récompense, terminé)."""
         dr, dc = self.ACTIONS[action_idx]
         nr, nc = state[0] + dr, state[1] + dc
         if not self.is_valid(nr, nc):
-            return state, -5.0, False  # wall bump penalty
+            return state, -5.0, False  # pénalité de collision avec un mur
         reward = self.reward_at(nr, nc)
         done = (nr, nc) == self.goal
         return (nr, nc), reward, done
 
-    # ── environment generation ──────────────────────────────────
+    # ── génération de l'environnement ──────────────────────────
     def add_random_obstacles(self, ratio: float = 0.2, seed: Optional[int] = None):
         rng = random.Random(seed)
         for r in range(self.rows):
@@ -106,13 +106,15 @@ class GridWorld:
 
     def add_random_rewards(self, count: int = 3, seed: Optional[int] = None):
         rng = random.Random(seed)
-        placed = 0
-        while placed < count:
-            r, c = rng.randint(0, self.rows - 1), rng.randint(0, self.cols - 1)
-            if self.grid[r, c] == CellType.EMPTY:
-                self.grid[r, c] = CellType.REWARD
-                self.rewards[(r, c)] = 10.0
-                placed += 1
+        empty_cells = [
+            (r, c)
+            for r in range(self.rows) for c in range(self.cols)
+            if self.grid[r, c] == CellType.EMPTY
+        ]
+        rng.shuffle(empty_cells)
+        for r, c in empty_cells[:count]:
+            self.grid[r, c] = CellType.REWARD
+            self.rewards[(r, c)] = 10.0
 
     def reset(self) -> Tuple[int, int]:
         return self.start
@@ -124,11 +126,11 @@ class GridWorld:
         return env
 
 
-# ── Maze generation ─────────────────────────────────────────────
+# ── Génération de labyrinthes ────────────────────────────────────
 def generate_maze_dfs(rows: int, cols: int, seed: Optional[int] = None) -> GridWorld:
-    """Generate a maze using randomized DFS (recursive backtracking)."""
+    """Génère un labyrinthe par DFS randomisé (backtracking récursif)."""
     rng = random.Random(seed)
-    grid = np.ones((rows, cols), dtype=int)  # all walls
+    grid = np.ones((rows, cols), dtype=int)  # tout est mur
 
     def carve(r, c):
         grid[r, c] = CellType.EMPTY
@@ -142,7 +144,7 @@ def generate_maze_dfs(rows: int, cols: int, seed: Optional[int] = None) -> GridW
 
     carve(0, 0)
 
-    # ensure goal reachable
+    # s'assurer que l'objectif est atteignable
     goal_r, goal_c = rows - 1, cols - 1
     if rows % 2 == 0:
         goal_r = rows - 2
@@ -157,7 +159,7 @@ def generate_maze_dfs(rows: int, cols: int, seed: Optional[int] = None) -> GridW
 
 
 def generate_maze_prim(rows: int, cols: int, seed: Optional[int] = None) -> GridWorld:
-    """Generate a maze using randomized Prim's algorithm."""
+    """Génère un labyrinthe par l'algorithme de Prim randomisé."""
     rng = random.Random(seed)
     grid = np.ones((rows, cols), dtype=int)
 
