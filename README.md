@@ -233,7 +233,7 @@ Ce projet, réalisé en autodidacte en dehors de mon cursus de M1, m'a permis de
 | **Matplotlib** | Visualisation (grilles, heatmaps, courbes d'entraînement, value maps) |
 | **Streamlit** | Interface web interactive |
 | **Pandas** | Analyse statistique des benchmarks |
-| **SciPy** | Tests de significativité statistique (Mann-Whitney U) |
+| **SciPy** | Statistical testing (Wilcoxon signed-rank) |
 
 ---
 
