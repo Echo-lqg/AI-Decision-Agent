@@ -1,3 +1,5 @@
+Français | [English](README.en.md)
+
 # AI Decision Agent — Planification de Chemins & Apprentissage par Renforcement
 
 > **Projet personnel d'autoformation** — Étude comparative entre algorithmes
@@ -62,7 +64,8 @@ L'environnement est modélisé comme un graphe pondéré implicite :
 
 ```
 AI-Decision-Agent/
-├── README.md                 # Documentation
+├── README.md                 # Documentation française
+├── README.en.md              # Documentation en anglais
 ├── requirements.txt          # Dépendances Python
 ├── main.py                   # Point d'entrée CLI (démonstration, benchmarks)
 ├── app.py                    # Interface web interactive (Streamlit)
@@ -233,8 +236,7 @@ Ce projet, réalisé en autodidacte en dehors de mon cursus de M1, m'a permis de
 | **Matplotlib** | Visualisation (grilles, heatmaps, courbes d'entraînement, value maps) |
 | **Streamlit** | Interface web interactive |
 | **Pandas** | Analyse statistique des benchmarks |
-| **SciPy** | Statistical testing (Wilcoxon signed-rank) |
-
+| **SciPy** | Tests statistiques (Wilcoxon signé) |
 ---
 
 ## Références
