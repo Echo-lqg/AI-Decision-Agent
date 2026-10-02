@@ -40,13 +40,13 @@ Four algorithms implemented from scratch (without a graph library):
 | **BFS** | Uninformed | Optimal (uniform cost) | O(V + E) |
 | **DFS** | Uninformed | Not optimal | O(V + E) |
 | **Dijkstra** | Cost-informed | Optimal (costs ≥ 0) | O((V+E) log V) |
-| **A\*** | Heuristic (Manhattan) | Optimal (admissible h) | O(E log V) |
+| **A\*** | Heuristic (Manhattan) | Optimal (admissible h) | O((V+E) log V) |
 
 ### 2. Tabular Reinforcement Learning
 
 | Agent | Update | Property |
 |-------|--------|----------|
-| **Q-Learning** | Off-policy: `max_a Q(s',a)` | Converges to optimal Q\*, aggressive exploration |
+| **Q-Learning** | Off-policy: `max_a Q(s',a)` | Can converge to optimal Q\* under standard conditions; off-policy exploration |
 | **SARSA** | On-policy: `Q(s',a')` | More cautious policies, penalties better avoided |
 
 ### 3. GridWorld Environment
@@ -189,7 +189,7 @@ python main.py benchmark --type cross
 
 ### Classical Search
 
-- **A\*** explores significantly fewer nodes than BFS thanks to the Manhattan heuristic, while preserving optimality.
+- **A\*** generally explores fewer nodes than BFS thanks to the Manhattan heuristic, while preserving optimality.
 - **Dijkstra** proves indispensable when the terrain is weighted (swamps), where BFS no longer guarantees optimality.
 - **DFS** is fast but produces paths that are often much longer than the optimal one.
 - The performance gap between A\* and BFS widens as the grid size increases.

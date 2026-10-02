@@ -40,13 +40,13 @@ Quatre algorithmes implémentés from scratch (sans bibliothèque de graphes) :
 | **BFS** | Non-informé | Optimal (coût uniforme) | O(V + E) |
 | **DFS** | Non-informé | Non optimal | O(V + E) |
 | **Dijkstra** | Informé par coût | Optimal (coûts ≥ 0) | O((V+E) log V) |
-| **A\*** | Heuristique (Manhattan) | Optimal (h admissible) | O(E log V) |
+| **A\*** | Heuristique (Manhattan) | Optimal (h admissible) | O((V+E) log V) |
 
 ### 2. Apprentissage par Renforcement Tabulaire
 
 | Agent | Mise à jour | Propriété |
 |-------|-----------|-----------|
-| **Q-Learning** | Off-policy : `max_a Q(s',a)` | Converge vers Q\* optimal, exploration agressive |
+| **Q-Learning** | Off-policy : `max_a Q(s',a)` | Peut converger vers Q\* optimal sous conditions standard ; exploration off-policy |
 | **SARSA** | On-policy : `Q(s',a')` | Politiques plus prudentes, pénalités mieux évitées |
 
 ### 3. Environnement GridWorld
@@ -189,7 +189,7 @@ python main.py benchmark --type cross
 
 ### Recherche Classique
 
-- **A\*** explore significativement moins de nœuds que BFS grâce à l'heuristique Manhattan, tout en conservant l'optimalité.
+- **A\*** explore généralement moins de nœuds que BFS grâce à l'heuristique Manhattan, tout en conservant l'optimalité.
 - **Dijkstra** s'avère indispensable lorsque le terrain est pondéré (marécages), là où BFS ne garantit plus l'optimalité.
 - **DFS** est rapide mais produit des chemins souvent bien plus longs que l'optimal.
 - L'écart de performance entre A\* et BFS s'accentue avec la taille de la grille.
